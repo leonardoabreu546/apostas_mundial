@@ -7,13 +7,33 @@ async function iniciarBaseDados() {
         driver: sqlite3.Database
     });
 
+    // 🌟 Ativar o suporte a Foreign Keys no SQLite
+    await db.exec('PRAGMA foreign_keys = ON;');
+
     await db.exec(`
         CREATE TABLE IF NOT EXISTS equipas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_equipa INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL UNIQUE,
             grupo TEXT NOT NULL,
             bandeira TEXT NOT NULL,
             likes INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS jogos (
+            id_jogo INTEGER PRIMARY KEY AUTOINCREMENT,
+            equipa1_id INTEGER NOT NULL,
+            equipa2_id INTEGER NOT NULL,
+            data_hora TEXT NOT NULL,
+            FOREIGN KEY (equipa1_id) REFERENCES equipas(id_equipa),
+            FOREIGN KEY (equipa2_id) REFERENCES equipas(id_equipa)
+            );
+
+        CREATE TABLE IF NOT EXISTS apostas(
+            id_aposta INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_jogo INTEGER NOT NULL,
+            equipa1_golos INTEGER NOT NULL,
+            equipa2_golos INTEGER NOT NULL,
+            FOREIGN KEY (id_jogo) REFERENCES jogos(id_jogo)
         );
     `);
 
