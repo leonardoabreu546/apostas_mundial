@@ -37,6 +37,13 @@ async function iniciarBaseDados() {
         );
     `);
 
+    await db.run(`
+        INSERT OR IGNORE INTO equipas (nome, grupo, bandeira) VALUES
+    ('Portugal', 'H', 'portugal.png'), 
+    ('Brasil', 'G', 'brasil.png'), 
+    ('Brasil', 'G', 'brasil.png'),('França', 'D', 'franca.png');
+    `);
+    
     console.log("Base de dados pronta e tabela de equipas criada!");
 }
 
