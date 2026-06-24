@@ -43,6 +43,14 @@ async function iniciarBaseDados() {
     ('Brasil', 'G', 'brasil.png'), 
     ('Brasil', 'G', 'brasil.png'),('França', 'D', 'franca.png');
     `);
+
+    await db.run(`
+        INSERT OR IGNORE INTO jogos (id_jogo, equipa1_id, equipa2_id, data_hora) VALUES
+        (1, 
+        (SELECT id_equipa FROM equipas WHERE nome = 'Portugal'), 
+        (SELECT id_equipa FROM equipas WHERE nome = 'Brasil'), 
+        '2026-07-10 20:00:00');
+    `);
     
     console.log("Base de dados pronta e tabela de equipas criada!");
 }
