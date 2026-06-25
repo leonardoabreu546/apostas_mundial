@@ -59,7 +59,20 @@ async function iniciarBaseDados() {
         2,
         1);
     `);
-    
+
+    await db.run(`
+        INSERT OR IGNORE INTO apostas (id_aposta, id_jogo, equipa1_golos, equipa2_golos) VALUES
+        (1,
+        (SELECT id_jogo FROM jogos 
+        WHERE equipa1_id = (SELECT id_equipa FROM equipas WHERE nome = 'Portugal')
+            AND equipa2_id = (SELECT id_equipa FROM equipas WHERE nome = 'Brasil')
+        ),
+        2,
+        1);
+    `);
+
+
+
     console.log("Base de dados pronta e tabela de equipas criada!");
 }
 
