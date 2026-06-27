@@ -22,6 +22,16 @@ app.get ("/equipas", async (req, res) => {
     }
 });
 
+app.get("/jogos", async (req,res) => {
+    try {
+        const db = await ligarBD();
+        const jogos = await db.all("SELECT * FROM jogos");
+        res.json(jogos);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao ligar à base de dados" });
+    }
+});
+
 app.get("/", (req, res) => {
     res.send("Hello, World!");
 });
