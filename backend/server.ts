@@ -12,6 +12,8 @@ async function ligarBD() {
     });
 }
 
+app.use(express.json());
+
 app.get ("/equipas", async (req, res) => {
     try {
         const db = await ligarBD();
@@ -29,6 +31,20 @@ app.get("/jogos", async (req,res) => {
         res.json(jogos);
     } catch (error) {
         res.status(500).json({ error: "Erro ao ligar à base de dados" });
+    }
+});
+
+app.post("/apostas", async (req, res) => {
+    const { id_jogo, equipa1_golos, equipa2_golos } = req.body;
+    try {
+        const db = await ligarBD();
+        await db.run(
+            "INSERT INTO apostas (id_jogo, equipa1_golos, equipa2_golos) VALUES (?, ?, ?)",
+            [id_jogo, equipa1_golos, equipa2_golos]
+        );
+        res.status(201).json({ message: "Aposta registada com sucesso" });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao registar a aposta" });
     }
 });
 
