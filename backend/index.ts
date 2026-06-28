@@ -24,9 +24,11 @@ async function iniciarBaseDados() {
             equipa1_id INTEGER NOT NULL,
             equipa2_id INTEGER NOT NULL,
             data_hora TEXT NOT NULL,
+            equipa1_golos INTEGER, -- Golos reais da equipa 1 (pode ser NULL se o jogo não começou)
+            equipa2_golos INTEGER,
             FOREIGN KEY (equipa1_id) REFERENCES equipas(id_equipa),
             FOREIGN KEY (equipa2_id) REFERENCES equipas(id_equipa)
-            );
+);
 
         CREATE TABLE IF NOT EXISTS apostas(
             id_aposta INTEGER PRIMARY KEY AUTOINCREMENT,
