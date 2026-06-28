@@ -24,13 +24,26 @@ app.get ("/equipas", async (req, res) => {
     }
 });
 
-app.get("/jogos", async (req,res) => {
+app.get("/jogos", async (req, res) => {
     try {
         const db = await ligarBD();
-        const jogos = await db.all("SELECT * FROM jogos");
+        const jogos = await db.all(`
+            SELECT
+                jogos.id_jogo,
+                jogos.data_hora,
+                jogos.equipa1_golos,
+                jogos.equipa2_golos,
+                e1.nome AS equipa1_nome,
+                e2.nome AS equipa2_nome,
+                e1.bandeira AS equipa1_bandeira,
+                e2.bandeira AS equipa2_bandeira
+            FROM jogos
+            INNER JOIN equipas AS e1 ON jogos.equipa1_id = e1.id_equipa
+            INNER JOIN equipas AS e2 ON jogos.equipa2_id = e2.id_equipa
+        `);
         res.json(jogos);
     } catch (error) {
-        res.status(500).json({ error: "Erro ao ligar à base de dados" });
+        res.status(500).json({ error: "Erro ao procurar os jogos" });
     }
 });
 
