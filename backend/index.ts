@@ -11,6 +11,16 @@ async function iniciarBaseDados() {
     await db.exec('PRAGMA foreign_keys = ON;');
 
     await db.exec(`
+
+        CREATE TABLE IF NOT EXISTS utilizadores (
+            id_utilizador INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            morada TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            nif TEXT NOT NULL UNIQUE,
+            data_nascimento TEXT NOT NULL
+        );
+        
         CREATE TABLE IF NOT EXISTS equipas (
         id_equipa INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL UNIQUE,
@@ -33,9 +43,11 @@ async function iniciarBaseDados() {
         CREATE TABLE IF NOT EXISTS apostas(
             id_aposta INTEGER PRIMARY KEY AUTOINCREMENT,
             id_jogo INTEGER NOT NULL,
+            id_utilizador INTEGER NOT NULL,
             equipa1_golos INTEGER NOT NULL,
             equipa2_golos INTEGER NOT NULL,
-            FOREIGN KEY (id_jogo) REFERENCES jogos(id_jogo)
+            FOREIGN KEY (id_jogo) REFERENCES jogos(id_jogo),
+            FOREIGN KEY (id_utilizador) REFERENCES utilizadores(id_utilizador)
         );
     `);
 
@@ -72,8 +84,6 @@ async function iniciarBaseDados() {
         2,
         1);
     `);
-
-
 
     console.log("Base de dados pronta e tabela de equipas criada!");
 }
