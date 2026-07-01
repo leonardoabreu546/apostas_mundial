@@ -65,6 +65,24 @@ app.get("/", (req, res) => {
     res.send("Hello, World!");
 });
 
+app.post("/utilizadores", async (req, res) => {
+    const { nome, email, nif, morada, data_nascimento } = req.body;
+    try {
+        const db = await ligarBD();
+        await db.run(
+            "INSERT INTO utilizadores (nome, email, nif, morada, data_nascimento) VALUES (?, ?, ?, ?, ?)",
+            [nome, email, nif, morada, data_nascimento]
+        );
+        res.status(201).json({ message: "Utilizador registado com sucesso" });
+    } catch (error: any) {
+        if (error.message?.includes("UNIQUE constraint failed")) {
+            res.status(400).json({ error: "O E-mail ou o NIF introduzido já está registado" });
+            return;
+        }
+        res.status(500).json({ error: "Erro ao registar o utilizador" });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
