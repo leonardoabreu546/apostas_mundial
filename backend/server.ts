@@ -83,6 +83,16 @@ app.post("/utilizadores", async (req, res) => {
     }
 });
 
+app.get("/utilizadores", async (req, res) => {
+    try {
+        const db = await ligarBD();
+        const utilizadores = await db.all("SELECT id_utilizador, nome, email, nif, data_nascimento, morada FROM utilizadores");
+        res.json(utilizadores);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao listar os utilizadores" });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
