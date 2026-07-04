@@ -48,15 +48,25 @@ app.get("/jogos", async (req, res) => {
 });
 
 app.post("/apostas", async (req, res) => {
-    const { id_jogo, equipa1_golos, equipa2_golos } = req.body;
+    const { id_utilizador, id_jogo, equipa1_golos, equipa2_golos } = req.body;
+
     try {
         const db = await ligarBD();
+
         await db.run(
-            "INSERT INTO apostas (id_jogo, equipa1_golos, equipa2_golos) VALUES (?, ?, ?)",
-            [id_jogo, equipa1_golos, equipa2_golos]
+            "INSERT INTO apostas (id_utilizador, id_jogo, equipa1_golos, equipa2_golos) VALUES (?, ?, ?, ?)",
+            [id_utilizador, id_jogo, equipa1_golos, equipa2_golos]
         );
+
         res.status(201).json({ message: "Aposta registada com sucesso" });
-    } catch (error) {
+    } catch (error: any) {
+        console.log("ERRO REAL NA APOSTA:", error); // 👈 Adiciona isto aqui!
+
+        if (error.message?.includes("FOREIGN KEY constraint failed")) {
+            res.status(400).json({ error: "O utilizador indicado não existe" });
+            return;
+        }
+        
         res.status(500).json({ error: "Erro ao registar a aposta" });
     }
 });
