@@ -1,8 +1,10 @@
 import express from "express";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import cors from "cors";
 
 const app = express();
+app.use(cors());
 const port = 3000;
 
 async function ligarBD() {
@@ -76,12 +78,12 @@ app.get("/", (req, res) => {
 });
 
 app.post("/utilizadores", async (req, res) => {
-    const { nome, email, nif, morada, data_nascimento } = req.body;
+    const { nome, email } = req.body;
     try {
         const db = await ligarBD();
         await db.run(
-            "INSERT INTO utilizadores (nome, email, nif, morada, data_nascimento) VALUES (?, ?, ?, ?, ?)",
-            [nome, email, nif, morada, data_nascimento]
+            "INSERT INTO utilizadores (nome, email) VALUES (?, ?)",
+            [nome, email]
         );
         res.status(201).json({ message: "Utilizador registado com sucesso" });
     } catch (error: any) {
@@ -96,7 +98,7 @@ app.post("/utilizadores", async (req, res) => {
 app.get("/utilizadores", async (req, res) => {
     try {
         const db = await ligarBD();
-        const utilizadores = await db.all("SELECT id_utilizador, nome, email, nif, data_nascimento, morada FROM utilizadores");
+        const utilizadores = await db.all("SELECT id_utilizador, nome, email FROM utilizadores");
         res.json(utilizadores);
     } catch (error) {
         res.status(500).json({ error: "Erro ao listar os utilizadores" });

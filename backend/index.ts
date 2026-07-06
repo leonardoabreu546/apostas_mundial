@@ -15,10 +15,7 @@ async function iniciarBaseDados() {
         CREATE TABLE IF NOT EXISTS utilizadores (
             id_utilizador INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
-            morada TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            nif TEXT NOT NULL UNIQUE,
-            data_nascimento TEXT NOT NULL
+            email TEXT NOT NULL UNIQUE
         );
         
         CREATE TABLE IF NOT EXISTS equipas (
