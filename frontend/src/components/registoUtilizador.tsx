@@ -1,9 +1,11 @@
 import { useState } from "react";
-import axios from "axios"; // Importamos o axios para falar com o backend
+import axios from "axios";
 
 function RegistoUtilizador() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState(''); 
+  
+  const [utilizadorLogado, setUtilizadorLogado] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,11 +19,27 @@ function RegistoUtilizador() {
       console.log('Sucesso:', resposta.data);
       alert('Identificação registada! Podes avançar para a votação.');
       
+      // Ativa o estado para mudar o que aparece no ecrã
+      setUtilizadorLogado(true);
+      
     } catch (erro) {
       console.error('Erro ao ligar ao backend:', erro);
       alert('Erro ao ligar ao servidor. Garante que o teu backend está ligado na porta 3000!');
     }
   };
+
+  // Se o utilizador já estiver logado, mostra o ecrã dos jogos
+  if (utilizadorLogado) {
+    return (
+      <div className="card p-4 shadow-sm text-center">
+        <h3 className="card-title mb-4">Lista de Jogos para Votação</h3>
+        <p className="text-muted">Bem-vindo, <strong>{nome}</strong>! Escolhe os teus palpites abaixo:</p>
+        <hr />
+        {/* Futuro componente de Jogos/Votação vai entrar aqui */}
+        <p className="text-success font-monospace">Os jogos vão carregar aqui...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="card p-4 shadow-sm">

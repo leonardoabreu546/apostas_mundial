@@ -31,7 +31,6 @@ app.post("/utilizadores", async (req, res) => {
         res.status(201).json({ message: "Utilizador registado com sucesso" });
     } catch (error: any) {
         if (error.message?.includes("UNIQUE constraint failed")) {
-            // Alterado para focar apenas no Email e simplificado com return direto
             return res.status(400).json({ error: "O E-mail introduzido já está registado" });
         }
         res.status(500).json({ error: "Erro ao registar o utilizador" });
@@ -94,7 +93,7 @@ app.post("/apostas", async (req, res) => {
 
         res.status(201).json({ message: "Aposta registada com sucesso" });
     } catch (error: any) {
-        console.log("ERRO REAL NA APOSTA:", error); // 👈 Adiciona isto aqui!
+        console.log("ERRO REAL NA APOSTA:", error);
 
         if (error.message?.includes("FOREIGN KEY constraint failed")) {
             res.status(400).json({ error: "O utilizador indicado não existe" });
