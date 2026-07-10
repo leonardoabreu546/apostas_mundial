@@ -24,16 +24,26 @@ app.post("/utilizadores", async (req, res) => {
     const { nome, email } = req.body;
     try {
         const db = await ligarBD();
+        const utilizadorExistente = await db.get(
+            "SELECT * FROM utilizadores WHERE email = ?",
+            [email]
+        );
+
+        if (utilizadorExistente) {
+            return res.status(200).json({ 
+                message: "Utilizador autenticado com sucesso", 
+                utilizador: utilizadorExistente 
+            });
+        }
+
         await db.run(
             "INSERT INTO utilizadores (nome, email) VALUES (?, ?)",
             [nome, email]
         );
+        
         res.status(201).json({ message: "Utilizador registado com sucesso" });
-    } catch (error: any) {
-        if (error.message?.includes("UNIQUE constraint failed")) {
-            return res.status(400).json({ error: "O E-mail introduzido já está registado" });
-        }
-        res.status(500).json({ error: "Erro ao registar o utilizador" });
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao processar a identificação" });
     }
 });
 
