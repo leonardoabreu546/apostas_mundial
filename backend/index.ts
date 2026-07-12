@@ -82,7 +82,24 @@ async function iniciarBaseDados() {
         1);
     `);
 
+    // Garante que a coluna existe (falha em silêncio se já existir)
+    await db.run(`
+        ALTER TABLE utilizadores 
+        ADD COLUMN role TEXT DEFAULT 'user'
+    `).catch(() => {});
+
+    await db.run(`
+        INSERT OR IGNORE INTO utilizadores (nome, email, role) 
+        VALUES (?, ?, ?)
+    `, ["Administrador", "admin@email.com", "admin"]);
+
     console.log("Base de dados pronta e tabela de equipas criada!");
+
+    await db.run(`
+    UPDATE utilizadores 
+    SET role = 'admin' 
+    WHERE email = ?
+`, ["admin@email.com"]);
 }
 
 iniciarBaseDados();

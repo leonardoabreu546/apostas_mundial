@@ -35,7 +35,6 @@ function RegistoUtilizador() {
         <h3 className="card-title mb-4">Lista de Jogos para Votação</h3>
         <p className="text-muted">Bem-vindo, <strong>{nome}</strong>! Escolhe os teus palpites abaixo:</p>
         <hr />
-        {/* Futuro componente de Jogos/Votação vai entrar aqui */}
         <p className="text-success font-monospace">Os jogos vão carregar aqui...</p>
       </div>
     );
