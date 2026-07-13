@@ -114,6 +114,17 @@ app.post("/apostas", async (req, res) => {
     }
 });
 
+app.get("/equipas", async (req, res) => {
+    try {
+        const db = await ligarBD();
+        const equipas = await db.all("SELECT * FROM equipas ORDER BY nome_equipa ASC");
+
+        res.status(200).json(equipas);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao listar as equipas" });
+    }
+});
+
 
 
 app.listen(port, () => {
