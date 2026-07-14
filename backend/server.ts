@@ -90,6 +90,26 @@ app.get("/jogos", async (req, res) => {
     }
 });
 
+app.post("/jogos", async (req, res) => {
+    const { equipa1_id, equipa2_id, data_hora } = req.body;
+
+    if (!equipa1_id || !equipa2_id || !data_hora) {
+        return res.status(400).json({ error: "Faltam dados obrigatórios (equipa1, equipa2 ou data_hora)" });
+    }
+
+    try {
+        const db = await ligarBD();
+        await db.run(
+            "INSERT INTO jogos (equipa1_id, equipa2_id, data_hora) VALUES (?, ?, ?)",
+            [equipa1_id, equipa2_id, data_hora]
+        );
+        res.status(201).json({ message: "Jogo agendado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao criar jogo:", error);
+        res.status(500).json({ error: "Erro ao criar o jogo na base de dados" });
+    }
+});
+
 app.post("/apostas", async (req, res) => {
     const { id_utilizador, id_jogo, equipa1_golos, equipa2_golos } = req.body;
 
