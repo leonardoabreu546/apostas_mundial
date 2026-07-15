@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import type { Equipa } from "./types";
+import type { Equipa } from "../components/types";
 
 interface AdminDashboardProps {
   nome: string;

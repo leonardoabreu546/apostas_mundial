@@ -1,47 +1,40 @@
 import React from "react";
+import { Input } from "./input";
+import { Button } from "./button";
+import { Card } from "./card";
 
-interface LoginFormProps {
-  nome: string;
-  setNome: (valor: string) => void;
-  email: string;
-  setEmail: (valor: string) => void;
+interface FormProps {
+  title: string;
+  fields: {
+    label: string;
+    value: string;
+    onChange: (val: string) => void;
+    placeholder?: string;
+    type?: string;
+  }[];
+  submitText: string;
   onSubmit: (e: React.FormEvent) => void;
 }
 
-export function LoginForm({ nome, setNome, email, setEmail, onSubmit }: LoginFormProps) {
+export function Form({ title, fields, submitText, onSubmit }: FormProps) {
   return (
-    <div className="card p-4 shadow-sm">
-      <h3 className="card-title mb-4">Identificação para Votar</h3>
-      
+    <Card title={title}>
       <form onSubmit={onSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Nome do Utilizador</label>
-          <input 
-            type="text" 
-            className="form-control" 
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            placeholder="Ex: João Silva"
+        {fields.map((field, idx) => (
+          <Input 
+            key={idx}
+            label={field.label}
+            value={field.value}
+            onChange={field.onChange}
+            placeholder={field.placeholder}
+            type={field.type}
             required
           />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input 
-            type="email" 
-            className="form-control" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Ex: joao@email.com"
-            required
-          />
-        </div>
-        
-        <button type="submit" className="btn btn-primary w-100">
-          Entrar e Votar
-        </button>
+        ))}
+        <Button type="submit" className="btn btn-primary w-100">
+          {submitText}
+        </Button>
       </form>
-    </div>
+    </Card>
   );
 }
