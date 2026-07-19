@@ -1,16 +1,22 @@
 import { useState } from "react";
 import axios from "axios";
 import type { Equipa } from "../components/types";
+import { Card } from "../components/card";
+import { Button } from "../components/button";
+import { Input } from "../components/input";
+import { Select } from "../components/select";
+import { List, ListItem } from "../components/list";
 
 interface AdminDashboardProps {
-  nome: string;
   carregouEquipas: boolean;
   equipas: Equipa[];
   carregarEquipas: () => void;
 }
 
-export function AdminDashboard({ nome, carregouEquipas, equipas, carregarEquipas }: AdminDashboardProps) {
-  // Estados para controlar o formulário de criação de jogos
+export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: AdminDashboardProps) {
+
+  const nome = localStorage.getItem("nome_utilizador") || "Administrador";
+
   const [mostrarFormJogo, setMostrarFormJogo] = useState(false);
   const [equipa1Id, setEquipa1Id] = useState("");
   const [equipa2Id, setEquipa2Id] = useState("");
@@ -50,97 +56,89 @@ export function AdminDashboard({ nome, carregouEquipas, equipas, carregarEquipas
     }
   };
 
+  const optionsEquipas = equipas.map((eq) => ({
+    value: eq.id_equipa,
+    label: eq.nome,
+  }));
+
   return (
-    <div className="card p-4 shadow-sm text-center border-danger">
+    <Card className="card p-4 shadow-sm text-center border-danger">
       <h3 className="card-title mb-4 text-danger">Painel do Administrador</h3>
       <p className="text-muted">Bem-vindo, <strong>{nome}</strong>! (Modo Admin)</p>
       <hr />
       
       <div className="d-grid gap-2 mb-4">
-        {/* Ativada a função para abrir o formulário */}
-        <button className="btn btn-danger" onClick={abrirCriarJogo}>
+        <Button className="btn btn-danger" onClick={abrirCriarJogo}>
           Criar Novo Jogo
-        </button>
-        <button className="btn btn-info text-white" onClick={carregarEquipas}>
+        </Button>
+        <Button className="btn btn-info text-white" onClick={carregarEquipas}>
           Ver Equipas
-        </button>
-        <button className="btn btn-secondary">Gerir Utilizadores</button>
+        </Button>
+        <Button className="btn btn-secondary">
+          Gerir Utilizadores
+        </Button>
       </div>
 
-      {/* Formulário de Criação de Jogo */}
+      {/* Formulário de Criação de Jogo utilizando Inputs/Selects genéricos */}
       {mostrarFormJogo && (
-        <div className="card p-3 mb-4 bg-light text-start">
+        <Card className="card p-3 mb-4 bg-light text-start">
           <h5 className="mb-3">Agendar Novo Jogo</h5>
           <form onSubmit={handleCriarJogo}>
-            <div className="mb-3">
-              <label className="form-label">Equipa de Casa (Equipa 1)</label>
-              <select 
-                className="form-select" 
-                value={equipa1Id} 
-                onChange={(e) => setEquipa1Id(e.target.value)}
-                required
-              >
-                <option value="">Selecione uma equipa...</option>
-                {equipas.map((eq) => (
-                  <option key={eq.id_equipa} value={eq.id_equipa}>{eq.nome}</option>
-                ))}
-              </select>
-            </div>
+            
+            <Select 
+              label="Equipa de Casa (Equipa 1)"
+              value={equipa1Id}
+              onChange={setEquipa1Id}
+              options={optionsEquipas}
+              placeholder="Selecione uma equipa..."
+              required
+            />
 
-            <div className="mb-3">
-              <label className="form-label">Equipa de Fora (Equipa 2)</label>
-              <select 
-                className="form-select" 
-                value={equipa2Id} 
-                onChange={(e) => setEquipa2Id(e.target.value)}
-                required
-              >
-                <option value="">Selecione uma equipa...</option>
-                {equipas.map((eq) => (
-                  <option key={eq.id_equipa} value={eq.id_equipa}>{eq.nome}</option>
-                ))}
-              </select>
-            </div>
+            <Select 
+              label="Equipa de Fora (Equipa 2)"
+              value={equipa2Id}
+              onChange={setEquipa2Id}
+              options={optionsEquipas}
+              placeholder="Selecione uma equipa..."
+              required
+            />
 
-            <div className="mb-3">
-              <label className="form-label">Data e Hora</label>
-              <input 
-                type="datetime-local" 
-                className="form-control" 
-                value={dataHora}
-                onChange={(e) => setDataHora(e.target.value)}
-                required
-              />
-            </div>
+            <Input 
+              label="Data e Hora"
+              type="datetime-local"
+              value={dataHora}
+              onChange={setDataHora}
+              required
+            />
 
             <div className="d-flex gap-2">
-              <button type="submit" className="btn btn-success flex-grow-1">Gravar Jogo</button>
-              <button 
+              <Button type="submit" className="btn btn-success flex-grow-1">
+                Gravar Jogo
+              </Button>
+              <Button 
                 type="button" 
                 className="btn btn-outline-secondary" 
                 onClick={() => setMostrarFormJogo(false)}
               >
                 Cancelar
-              </button>
+              </Button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
-      {/* Lista de Equipas (só aparece se o formulário estiver fechado) */}
+      {/* Lista de Equipas genérica */}
       {carregouEquipas && !mostrarFormJogo && (
-        <div className="text-start">
-          <h5 className="mb-3">Equipas Disponíveis na BD:</h5>
-          <ul className="list-group">
-            {equipas.map((equipa) => (
-              <li key={equipa.id_equipa} className="list-group-item d-flex justify-content-between align-items-center">
-                <strong>{equipa.nome}</strong>
-                <span className="badge bg-secondary rounded-pill">ID: {equipa.id_equipa}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <List title="Equipas Disponíveis na BD:">
+          {equipas.map((equipa) => (
+            <ListItem 
+              key={equipa.id_equipa} 
+              title={equipa.nome} 
+              badgeText={`ID: ${equipa.id_equipa}`} 
+            />
+          ))}
+        </List>
       )}
-    </div>
+    </Card>
   );
 }

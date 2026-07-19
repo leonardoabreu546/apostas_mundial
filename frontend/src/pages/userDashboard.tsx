@@ -1,14 +1,16 @@
-interface UserDashboardProps {
-  nome: string;
-}
+import { Card } from "../components/card";
 
-export function UserDashboard({ nome }: UserDashboardProps) {
+export function UserDashboard() {
+  const nome = localStorage.getItem("nome_utilizador") || "Utilizador";
+
   return (
-    <div className="card p-4 shadow-sm text-center">
+    <Card>
       <h3 className="card-title mb-4">Lista de Jogos para Votação</h3>
-      <p className="text-muted">Bem-vindo, <strong>{nome}</strong>! Escolhe os teus palpites abaixo:</p>
+      <p className="text-muted">
+        Bem-vindo, <strong>{nome}</strong>! Escolhe os teus palpites abaixo:
+      </p>
       <hr />
       <p className="text-success font-monospace">Os jogos vão carregar aqui...</p>
-    </div>
+    </Card>
   );
 }
