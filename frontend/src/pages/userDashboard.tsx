@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import type { Jogo } from "../components/types";
-
-// Componente Genérico Importado
 import { Card } from "../components/card";
 import { List } from "../components/list";
+import { Button } from "../components/button";
 
 export function UserDashboard() {
   const nome = localStorage.getItem("nome_utilizador") || "Utilizador";
@@ -12,32 +11,46 @@ export function UserDashboard() {
   const [jogos, setJogos] = useState<Jogo[]>([]);
   const [carregando, setCarregando] = useState(true);
 
+  const carregarJogos = async (ativo = true) => {
+    try {
+      const resposta = await axios.get("http://localhost:3000/jogos");
+      if (ativo) {
+        setJogos(resposta.data);
+      }
+    } catch (erro) {
+      console.error("Erro ao carregar jogos:", erro);
+      alert("Não foi possível carregar a lista de jogos.");
+    } finally {
+      if (ativo) {
+        setCarregando(false);
+      }
+    }
+  };
+
   useEffect(() => {
     let ativo = true;
+    carregarJogos(ativo);
 
-    const carregarJogos = async () => {
-      try {
-        const resposta = await axios.get("http://localhost:3000/jogos");
-        if (ativo) {
-          setJogos(resposta.data);
-        }
-      } catch (erro) {
-        console.error("Erro ao carregar jogos:", erro);
-        alert("Não foi possível carregar la lista de jogos.");
-      } finally {
-        if (ativo) {
-          setCarregando(false);
-        }
-      }
-    };
-
-    carregarJogos();
-
-    // Função de limpeza (cleanup) para evitar fugas de memória e renders desnecessários
     return () => {
       ativo = false;
     };
   }, []);
+
+  // Função para registar o voto do utilizador
+  const handleVotar = async (idJogo: number, idEquipa: number) => {
+    try {
+      await axios.post("http://localhost:3000/votos", {
+        id_jogo: idJogo,
+        id_equipa: idEquipa,
+      });
+
+      alert("Voto registado com sucesso!");
+      carregarJogos();
+    } catch (erro) {
+      console.error("Erro ao votar:", erro);
+      alert("Não foi possível registar o voto.");
+    }
+  };
 
   const formatarData = (dataString: string) => {
     const data = new Date(dataString);
@@ -58,27 +71,45 @@ export function UserDashboard() {
         <p className="text-danger">Nenhum jogo agendado de momento.</p>
       ) : (
         <List title="Jogos Disponíveis:">
-          {jogos.map((jogo) => (
-            <li key={jogo.id_jogo} className="list-group-item p-3 mb-2 bg-light rounded shadow-sm">
-              <div className="d-flex justify-content-between align-items-center fw-bold">
-                <span>{jogo.equipa1_nome || `Equipa ${jogo.equipa1_id}`}</span>
-                <span className="badge bg-primary px-3 py-2 mx-2">VS</span>
-                <span>{jogo.equipa2_nome || `Equipa ${jogo.equipa2_id}`}</span>
-              </div>
-              
-              <div className="text-center mt-2">
-                <small className="text-muted d-block">
-                  📅 {formatarData(jogo.data_hora)}
-                </small>
-                {jogo.equipa1_golos !== null && 
-                 jogo.equipa2_golos !== null && (
-                  <span className="badge bg-success mt-1">
-                    Resultado: {jogo.equipa1_golos} - {jogo.equipa2_golos}
-                  </span>
-                )}
-              </div>
-            </li>
-          ))}
+          {jogos.map((jogo) => {
+            const nomeEq1 = jogo.equipa1_nome || `Equipa ${jogo.equipa1_id}`;
+            const nomeEq2 = jogo.equipa2_nome || `Equipa ${jogo.equipa2_id}`;
+            const votosEq1 = jogo.votos_equipa1 || 0;
+            const votosEq2 = jogo.votos_equipa2 || 0;
+
+            return (
+              <li key={jogo.id_jogo} className="list-group-item p-3 mb-3 bg-light rounded shadow-sm">
+                <div className="text-center mb-2">
+                  <small className="text-muted">📅 {formatarData(jogo.data_hora)}</small>
+                </div>
+
+                {/* Botões para Votar */}
+                <div className="d-flex justify-content-between align-items-center gap-2 mb-2">
+                  <Button 
+                    className="btn btn-outline-primary flex-grow-1"
+                    onClick={() => handleVotar(jogo.id_jogo, jogo.equipa1_id)}
+                  >
+                    Votar {nomeEq1}
+                  </Button>
+
+                  <span className="badge bg-secondary px-2 py-1">VS</span>
+
+                  <Button 
+                    className="btn btn-outline-primary flex-grow-1"
+                    onClick={() => handleVotar(jogo.id_jogo, jogo.equipa2_id)}
+                  >
+                    Votar {nomeEq2}
+                  </Button>
+                </div>
+
+                {/* Exibição da Contagem de Votos */}
+                <div className="d-flex justify-content-between px-2 text-muted small">
+                  <span>Votos: <strong>{votosEq1}</strong></span>
+                  <span>Votos: <strong>{votosEq2}</strong></span>
+                </div>
+              </li>
+            );
+          })}
         </List>
       )}
     </Card>

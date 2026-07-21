@@ -1,16 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Hook de navegação correto
-
-// Componentes Genéricos e Reutilizáveis Importados
-import { Card } from "../components/Card";
-import { Input } from "../components/Input";
-import { Button } from "../components/Button";
+import { useNavigate } from "react-router-dom"; 
+import { Card } from "../components/card";
+import { Input } from "../components/input";
+import { Button } from "../components/button";
 
 function RegistoUtilizador() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState(''); 
-  const navigate = useNavigate(); // Inicialização do hook de navegação
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +31,8 @@ function RegistoUtilizador() {
 
       alert('Identificação registada! Podes avançar.');
       
-      // Guardamos o nome no localStorage para acesso independente por outras páginas/rotas
       localStorage.setItem("nome_utilizador", nomeFinal);
 
-      // Redirecionamento correto e nativo de rotas
       if (userRole === 'admin') {
         navigate("/admin");
       } else {

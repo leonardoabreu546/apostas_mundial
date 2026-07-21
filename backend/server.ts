@@ -145,7 +145,39 @@ app.get("/equipas", async (req, res) => {
     }
 });
 
+app.post("/votos", async (req, res) => {
+    const { id_jogo, id_equipa } = req.body;
 
+    if (!id_jogo || !id_equipa) {
+        return res.status(400).json({ error: "Dados incompletos para o voto" });
+    }
+
+    try {
+        const db = await ligarBD();
+        
+        // Procura o jogo para saber qual equipa é a 1 e qual é a 2
+        const jogo = await db.get("SELECT equipa1_id, equipa2_id FROM jogos WHERE id_jogo = ?", [id_jogo]);
+
+        if (!jogo) {
+            return res.status(404).json({ error: "Jogo não encontrado" });
+        }
+
+        // Define 1 para a equipa votada e 0 para a outra na tabela de apostas
+        const equipa1_voto = id_equipa === jogo.equipa1_id ? 1 : 0;
+        const equipa2_voto = id_equipa === jogo.equipa2_id ? 1 : 0;
+
+        // Usa id_utilizador genérico (ex: 1) por agora
+        await db.run(
+            "INSERT INTO apostas (id_jogo, id_utilizador, equipa1_golos, equipa2_golos) VALUES (?, ?, ?, ?)",
+            [id_jogo, 1, equipa1_voto, equipa2_voto]
+        );
+
+        res.status(201).json({ message: "Voto registado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao registar voto:", error);
+        res.status(500).json({ error: "Erro interno ao guardar o voto" });
+    }
+});
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
