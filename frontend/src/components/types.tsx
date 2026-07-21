@@ -10,6 +10,8 @@ export interface Jogo {
   equipa1_nome?: string;
   equipa2_nome?: string;
   data_hora: string;
-  equipa1_golos: number | null;
-  equipa2_golos: number | null;
+  votos_equipa1?: number;
+  votos_equipa2?: number;
 }
+
+
