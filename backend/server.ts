@@ -57,35 +57,41 @@ app.get("/utilizadores", async (req, res) => {
     }
 });
 
-app.get ("/equipas", async (req, res) => {
+app.get("/equipas", async (req, res) => {
     try {
         const db = await ligarBD();
-        const equipas = await db.all("SELECT * FROM equipas");
+        const equipas = await db.all("SELECT * FROM equipas ORDER BY nome ASC");
         res.json(equipas);
     } catch (error) {
-        res.status(500).json({ error: "Erro ao ligar à base de dados" });
+        res.status(500).json({ error: "Erro ao listar as equipas" });
     }
 });
 
+// GET /jogos: Devolve também equipa1_id, equipa2_id e contagem de votos
 app.get("/jogos", async (req, res) => {
     try {
         const db = await ligarBD();
         const jogos = await db.all(`
             SELECT
                 jogos.id_jogo,
+                jogos.equipa1_id,
+                jogos.equipa2_id,
                 jogos.data_hora,
                 jogos.equipa1_golos,
                 jogos.equipa2_golos,
                 e1.nome AS equipa1_nome,
                 e2.nome AS equipa2_nome,
                 e1.bandeira AS equipa1_bandeira,
-                e2.bandeira AS equipa2_bandeira
+                e2.bandeira AS equipa2_bandeira,
+                (SELECT COUNT(*) FROM apostas WHERE apostas.id_jogo = jogos.id_jogo AND apostas.equipa1_golos = 1) AS votos_equipa1,
+                (SELECT COUNT(*) FROM apostas WHERE apostas.id_jogo = jogos.id_jogo AND apostas.equipa2_golos = 1) AS votos_equipa2
             FROM jogos
             INNER JOIN equipas AS e1 ON jogos.equipa1_id = e1.id_equipa
             INNER JOIN equipas AS e2 ON jogos.equipa2_id = e2.id_equipa
         `);
         res.json(jogos);
     } catch (error) {
+        console.error("Erro ao procurar jogos:", error);
         res.status(500).json({ error: "Erro ao procurar os jogos" });
     }
 });
@@ -134,19 +140,9 @@ app.post("/apostas", async (req, res) => {
     }
 });
 
-app.get("/equipas", async (req, res) => {
-    try {
-        const db = await ligarBD();
-        const equipas = await db.all("SELECT * FROM equipas ORDER BY nome_equipa ASC");
-
-        res.status(200).json(equipas);
-    } catch (error) {
-        res.status(500).json({ error: "Erro ao listar as equipas" });
-    }
-});
-
+// POST /votos: Garante um utilizador válido mesmo se não existir nenhum
 app.post("/votos", async (req, res) => {
-    const { id_jogo, id_equipa } = req.body;
+    const { id_jogo, id_equipa, id_utilizador } = req.body;
 
     if (!id_jogo || !id_equipa) {
         return res.status(400).json({ error: "Dados incompletos para o voto" });
@@ -155,27 +151,31 @@ app.post("/votos", async (req, res) => {
     try {
         const db = await ligarBD();
         
-        // Procura o jogo para saber qual equipa é a 1 e qual é a 2
         const jogo = await db.get("SELECT equipa1_id, equipa2_id FROM jogos WHERE id_jogo = ?", [id_jogo]);
 
         if (!jogo) {
             return res.status(404).json({ error: "Jogo não encontrado" });
         }
 
-        // Define 1 para a equipa votada e 0 para a outra na tabela de apostas
+        // Descobre um ID de utilizador válido na base de dados se não for fornecido
+        let userID = id_utilizador;
+        if (!userID) {
+            const primeiroUser = await db.get("SELECT id_utilizador FROM utilizadores LIMIT 1");
+            userID = primeiroUser ? primeiroUser.id_utilizador : 1;
+        }
+
         const equipa1_voto = id_equipa === jogo.equipa1_id ? 1 : 0;
         const equipa2_voto = id_equipa === jogo.equipa2_id ? 1 : 0;
 
-        // Usa id_utilizador genérico (ex: 1) por agora
         await db.run(
             "INSERT INTO apostas (id_jogo, id_utilizador, equipa1_golos, equipa2_golos) VALUES (?, ?, ?, ?)",
-            [id_jogo, 1, equipa1_voto, equipa2_voto]
+            [id_jogo, userID, equipa1_voto, equipa2_voto]
         );
 
         res.status(201).json({ message: "Voto registado com sucesso!" });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Erro ao registar voto:", error);
-        res.status(500).json({ error: "Erro interno ao guardar o voto" });
+        res.status(500).json({ error: "Erro interno ao guardar o voto: " + error.message });
     }
 });
 
