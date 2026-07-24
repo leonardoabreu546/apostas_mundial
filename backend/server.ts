@@ -140,7 +140,6 @@ app.post("/apostas", async (req, res) => {
     }
 });
 
-// POST /votos: Garante um utilizador válido mesmo se não existir nenhum
 app.post("/votos", async (req, res) => {
     const { id_jogo, id_equipa, id_utilizador } = req.body;
 
@@ -150,18 +149,27 @@ app.post("/votos", async (req, res) => {
 
     try {
         const db = await ligarBD();
-        
-        const jogo = await db.get("SELECT equipa1_id, equipa2_id FROM jogos WHERE id_jogo = ?", [id_jogo]);
 
-        if (!jogo) {
-            return res.status(404).json({ error: "Jogo não encontrado" });
-        }
-
-        // Descobre um ID de utilizador válido na base de dados se não for fornecido
         let userID = id_utilizador;
         if (!userID) {
             const primeiroUser = await db.get("SELECT id_utilizador FROM utilizadores LIMIT 1");
             userID = primeiroUser ? primeiroUser.id_utilizador : 1;
+        }
+
+        // Impede votos duplicados do mesmo utilizador no mesmo jogo
+        const apostaExistente = await db.get(
+            "SELECT * FROM apostas WHERE id_jogo = ? AND id_utilizador = ?",
+            [id_jogo, userID]
+        );
+
+        if (apostaExistente) {
+            return res.status(400).json({ error: "Já registaste o teu voto para este jogo!" });
+        }
+
+        const jogo = await db.get("SELECT equipa1_id, equipa2_id FROM jogos WHERE id_jogo = ?", [id_jogo]);
+
+        if (!jogo) {
+            return res.status(404).json({ error: "Jogo não encontrado" });
         }
 
         const equipa1_voto = id_equipa === jogo.equipa1_id ? 1 : 0;
@@ -173,9 +181,11 @@ app.post("/votos", async (req, res) => {
         );
 
         res.status(201).json({ message: "Voto registado com sucesso!" });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Erro ao registar voto:", error);
-        res.status(500).json({ error: "Erro interno ao guardar o voto: " + error.message });
+        
+        const mensagemErro = error instanceof Error ? error.message : "Erro desconhecido";
+        res.status(500).json({ error: "Erro interno ao guardar o voto: " + mensagemErro });
     }
 });
 
