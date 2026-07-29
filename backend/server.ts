@@ -67,8 +67,9 @@ app.get("/equipas", async (req, res) => {
     }
 });
 
-// GET /jogos: Devolve também equipa1_id, equipa2_id e contagem de votos
 app.get("/jogos", async (req, res) => {
+    const id_utilizador = req.query.id_utilizador;
+
     try {
         const db = await ligarBD();
         const jogos = await db.all(`
@@ -84,12 +85,23 @@ app.get("/jogos", async (req, res) => {
                 e1.bandeira AS equipa1_bandeira,
                 e2.bandeira AS equipa2_bandeira,
                 (SELECT COUNT(*) FROM apostas WHERE apostas.id_jogo = jogos.id_jogo AND apostas.equipa1_golos = 1) AS votos_equipa1,
-                (SELECT COUNT(*) FROM apostas WHERE apostas.id_jogo = jogos.id_jogo AND apostas.equipa2_golos = 1) AS votos_equipa2
+                (SELECT COUNT(*) FROM apostas WHERE apostas.id_jogo = jogos.id_jogo AND apostas.equipa2_golos = 1) AS votos_equipa2,
+                EXISTS(
+                    SELECT 1 FROM apostas 
+                    WHERE apostas.id_jogo = jogos.id_jogo AND apostas.id_utilizador = ?
+                ) AS ja_votou
             FROM jogos
             INNER JOIN equipas AS e1 ON jogos.equipa1_id = e1.id_equipa
             INNER JOIN equipas AS e2 ON jogos.equipa2_id = e2.id_equipa
-        `);
-        res.json(jogos);
+        `, [id_utilizador || 0]);
+
+        // Converte o valor do SQLite (1 ou 0) para Boolean verdadeiro/falso
+        const jogosFormatados = jogos.map(jogo => ({
+            ...jogo,
+            ja_votou: Boolean(jogo.ja_votou)
+        }));
+
+        res.json(jogosFormatados);
     } catch (error) {
         console.error("Erro ao procurar jogos:", error);
         res.status(500).json({ error: "Erro ao procurar os jogos" });
