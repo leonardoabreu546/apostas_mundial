@@ -12,6 +12,7 @@ export interface Jogo {
   data_hora: string;
   votos_equipa1?: number;
   votos_equipa2?: number;
+  ja_votou?: boolean;
 }
 
 
