@@ -7,13 +7,14 @@ import { Button } from "../components/button";
 
 export function UserDashboard() {
   const nome = localStorage.getItem("nome_utilizador") || "Utilizador";
+  const idUtilizador = localStorage.getItem("id_utilizador") || 1;
   
   const [jogos, setJogos] = useState<Jogo[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   const carregarJogos = async () => {
     try {
-      const resposta = await axios.get("http://localhost:3000/jogos");
+      const resposta = await axios.get(`http://localhost:3000/jogos?id_utilizador=${idUtilizador}`);
       setJogos(resposta.data);
     } catch (erro) {
       console.error("Erro ao carregar jogos:", erro);
@@ -28,7 +29,7 @@ export function UserDashboard() {
 
     const buscarDadosIniciais = async () => {
       try {
-        const resposta = await axios.get("http://localhost:3000/jogos");
+        const resposta = await axios.get(`http://localhost:3000/jogos?id_utilizador=${idUtilizador}`);
         if (ativo) {
           setJogos(resposta.data);
         }
@@ -53,33 +54,34 @@ export function UserDashboard() {
 
   // Função para registar o voto do utilizador
   const handleVotar = async (idJogo: number, idEquipa: number) => {
-  if (!idEquipa) {
-    alert("Erro: O ID da equipa não foi encontrado. Atualize a página.");
-    return;
-  }
-
-  try {
-    await axios.post("http://localhost:3000/votos", {
-      id_jogo: idJogo,
-      id_equipa: idEquipa,
-    });
-
-    alert("Voto registado com sucesso!");
-    carregarJogos();
-  } catch (erro) {
-    console.error("Erro ao votar:", erro);
-
-    let mensagemErro = "Erro desconhecido";
-
-    if (axios.isAxiosError(erro)) {
-      mensagemErro = erro.response?.data?.error || erro.message;
-    } else if (erro instanceof Error) {
-      mensagemErro = erro.message;
+    if (!idEquipa) {
+      alert("Erro: O ID da equipa não foi encontrado. Atualize a página.");
+      return;
     }
 
-    alert(`Falha ao votar: ${mensagemErro}`);
-  }
-};
+    try {
+      await axios.post("http://localhost:3000/votos", {
+        id_jogo: idJogo,
+        id_equipa: idEquipa,
+        id_utilizador: idUtilizador
+      });
+
+      alert("Voto registado com sucesso!");
+      carregarJogos();
+    } catch (erro) {
+      console.error("Erro ao votar:", erro);
+
+      let mensagemErro = "Erro desconhecido";
+
+      if (axios.isAxiosError(erro)) {
+        mensagemErro = erro.response?.data?.error || erro.message;
+      } else if (erro instanceof Error) {
+        mensagemErro = erro.message;
+      }
+
+      alert(`Falha ao votar: ${mensagemErro}`);
+    }
+  };
 
   const formatarData = (dataString: string) => {
     const data = new Date(dataString);
@@ -108,7 +110,7 @@ export function UserDashboard() {
 
             return (
               <li key={jogo.id_jogo} className="list-group-item p-3 mb-3 bg-light rounded shadow-sm">
-                {/* 1. Layout Visual Anterior das Equipas */}
+                {/* 1. Equipas */}
                 <div className="d-flex justify-content-between align-items-center fw-bold">
                   <span>{nomeEq1}</span>
                   <span className="badge bg-primary px-3 py-2 mx-2">VS</span>
@@ -122,28 +124,31 @@ export function UserDashboard() {
                   </small>
                 </div>
 
-                {/* 3. Botões Adicionais de Votação */}
+                {/* 3. Botões de Votação com número de votos e bloqueio */}
                 <div className="d-flex justify-content-between gap-2 mt-3">
                   <Button 
                     className="btn btn-outline-primary btn-sm flex-grow-1"
                     onClick={() => handleVotar(jogo.id_jogo, jogo.equipa1_id)}
+                    disabled={jogo.ja_votou}
                   >
-                    Votar em {nomeEq1}
+                    Votar em {nomeEq1} ({votosEq1})
                   </Button>
 
                   <Button 
                     className="btn btn-outline-primary btn-sm flex-grow-1"
                     onClick={() => handleVotar(jogo.id_jogo, jogo.equipa2_id)}
+                    disabled={jogo.ja_votou}
                   >
-                    Votar em {nomeEq2}
+                    Votar em {nomeEq2} ({votosEq2})
                   </Button>
                 </div>
 
-                {/* 4. Contagem dos Votos */}
-                <div className="d-flex justify-content-between px-1 mt-2 text-muted small">
-                  <span>Votos: <strong>{votosEq1}</strong></span>
-                  <span>Votos: <strong>{votosEq2}</strong></span>
-                </div>
+                {/* 4. Indicação visual caso já tenha votado */}
+                {jogo.ja_votou && (
+                  <small className="text-success d-block text-center mt-2 fw-semibold">
+                    ✓ Já registaste o teu voto neste jogo
+                  </small>
+                )}
               </li>
             );
           })}

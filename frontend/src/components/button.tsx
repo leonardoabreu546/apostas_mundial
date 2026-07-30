@@ -5,11 +5,18 @@ interface ButtonProps {
   onClick?: () => void;
   type?: "button" | "submit";
   className?: string;
+  disabled?: boolean; 
 }
 
-export function Button({ children, onClick, type = "button", className = "btn btn-primary" }: ButtonProps) {
+export function Button({ 
+  children, 
+  onClick, 
+  type = "button", 
+  className = "btn btn-primary",
+  disabled = false
+}: ButtonProps) {
   return (
-    <button type={type} className={className} onClick={onClick}>
+    <button type={type} className={className} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );
