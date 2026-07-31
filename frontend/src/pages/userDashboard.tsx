@@ -83,6 +83,12 @@ export function UserDashboard() {
     }
   };
 
+  // Função para calcular a percentagem de votos
+  const calcularPercentagem = (votosEquipa: number, totalVotos: number) => {
+    if (totalVotos === 0) return 0;
+    return Math.round((votosEquipa / totalVotos) * 100);
+  };
+
   const formatarData = (dataString: string) => {
     const data = new Date(dataString);
     return data.toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" });
@@ -107,6 +113,10 @@ export function UserDashboard() {
             const nomeEq2 = jogo.equipa2_nome || `Equipa ${jogo.equipa2_id}`;
             const votosEq1 = jogo.votos_equipa1 || 0;
             const votosEq2 = jogo.votos_equipa2 || 0;
+            const totalVotos = votosEq1 + votosEq2;
+
+            const percEq1 = calcularPercentagem(votosEq1, totalVotos);
+            const percEq2 = calcularPercentagem(votosEq2, totalVotos);
 
             return (
               <li key={jogo.id_jogo} className="list-group-item p-3 mb-3 bg-light rounded shadow-sm">
@@ -124,7 +134,27 @@ export function UserDashboard() {
                   </small>
                 </div>
 
-                {/* 3. Botões de Votação com número de votos e bloqueio */}
+                {/* 3. Barra de Progresso / Percentagem */}
+                <div className="mt-3">
+                  <div className="d-flex justify-content-between small text-muted mb-1 fw-semibold">
+                    <span>{percEq1}%</span>
+                    <span>{percEq2}%</span>
+                  </div>
+                  <div className="progress" style={{ height: "10px" }}>
+                    <div 
+                      className="progress-bar bg-primary" 
+                      role="progressbar" 
+                      style={{ width: `${percEq1}%` }}
+                    ></div>
+                    <div 
+                      className="progress-bar bg-info" 
+                      role="progressbar" 
+                      style={{ width: `${percEq2}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* 4. Botões de Votação com número de votos e bloqueio */}
                 <div className="d-flex justify-content-between gap-2 mt-3">
                   <Button 
                     className="btn btn-outline-primary btn-sm flex-grow-1"
@@ -143,7 +173,7 @@ export function UserDashboard() {
                   </Button>
                 </div>
 
-                {/* 4. Indicação visual caso já tenha votado */}
+                {/* 5. Indicação visual caso já tenha votado */}
                 {jogo.ja_votou && (
                   <small className="text-success d-block text-center mt-2 fw-semibold">
                     ✓ Já registaste o teu voto neste jogo
