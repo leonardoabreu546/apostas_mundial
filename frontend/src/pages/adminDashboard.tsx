@@ -22,10 +22,27 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
   const [equipa2Id, setEquipa2Id] = useState("");
   const [dataHora, setDataHora] = useState("");
 
+  // Estados para gerir utilizadores
+  const [utilizadores, setUtilizadores] = useState<{ id_utilizador: number; nome: string; email: string; role?: string }[]>([]);
+  const [mostrarUtilizadores, setMostrarUtilizadores] = useState(false);
+
   const abrirCriarJogo = async () => {
     // Garante que as equipas estão carregadas antes de abrir o formulário
     await carregarEquipas();
     setMostrarFormJogo(true);
+    setMostrarUtilizadores(false);
+  };
+
+  const handleGerirUtilizadores = async () => {
+    try {
+      const resposta = await axios.get("http://localhost:3000/utilizadores");
+      setUtilizadores(resposta.data);
+      setMostrarUtilizadores(true);
+      setMostrarFormJogo(false);
+    } catch (erro) {
+      console.error("Erro ao carregar utilizadores:", erro);
+      alert("Não foi possível carregar a lista de utilizadores.");
+    }
   };
 
   const handleCriarJogo = async (e: React.FormEvent) => {
@@ -71,10 +88,16 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
         <Button className="btn btn-danger" onClick={abrirCriarJogo}>
           Criar Novo Jogo
         </Button>
-        <Button className="btn btn-info text-white" onClick={carregarEquipas}>
+        <Button 
+          className="btn btn-info text-white" 
+          onClick={() => {
+            carregarEquipas();
+            setMostrarUtilizadores(false);
+          }}
+        >
           Ver Equipas
         </Button>
-        <Button className="btn btn-secondary">
+        <Button className="btn btn-secondary" onClick={handleGerirUtilizadores}>
           Gerir Utilizadores
         </Button>
       </div>
@@ -127,8 +150,21 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
         </Card>
       )}
 
+      {/* Lista de Utilizadores */}
+      {mostrarUtilizadores && (
+        <List title="Utilizadores Registados:">
+          {utilizadores.map((u) => (
+            <ListItem 
+              key={u.id_utilizador} 
+              title={`${u.nome} (${u.email})`} 
+              badgeText={u.role || "user"} 
+            />
+          ))}
+        </List>
+      )}
+
       {/* Lista de Equipas genérica */}
-      {carregouEquipas && !mostrarFormJogo && (
+      {carregouEquipas && !mostrarFormJogo && !mostrarUtilizadores && (
         <List title="Equipas Disponíveis na BD:">
           {equipas.map((equipa) => (
             <ListItem 
