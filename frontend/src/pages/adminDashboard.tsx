@@ -33,15 +33,51 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
     setMostrarUtilizadores(false);
   };
 
-  const handleGerirUtilizadores = async () => {
+  const carregarUtilizadores = async () => {
     try {
       const resposta = await axios.get("http://localhost:3000/utilizadores");
       setUtilizadores(resposta.data);
-      setMostrarUtilizadores(true);
-      setMostrarFormJogo(false);
     } catch (erro) {
       console.error("Erro ao carregar utilizadores:", erro);
       alert("Não foi possível carregar a lista de utilizadores.");
+    }
+  };
+
+  const handleGerirUtilizadores = async () => {
+    await carregarUtilizadores();
+    setMostrarUtilizadores(true);
+    setMostrarFormJogo(false);
+  };
+
+  // 1. Função para alterar o cargo (admin <-> user)
+  const handleAlterarCargo = async (idUtilizador: number, roleAtual?: string) => {
+    const novoRole = roleAtual === "admin" ? "user" : "admin";
+
+    try {
+      await axios.patch(`http://localhost:3000/utilizadores/${idUtilizador}/role`, {
+        role: novoRole
+      });
+      alert(`Cargo alterado para ${novoRole} com sucesso!`);
+      carregarUtilizadores(); // Atualiza a lista após a alteração
+    } catch (erro) {
+      console.error("Erro ao alterar cargo:", erro);
+      alert("Falha ao alterar o cargo do utilizador.");
+    }
+  };
+
+  // 2. Função para eliminar utilizador
+  const handleEliminarUtilizador = async (idUtilizador: number, nomeUtilizador: string) => {
+    if (!confirm(`Tens a certeza que queres eliminar o utilizador "${nomeUtilizador}"?`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:3000/utilizadores/${idUtilizador}`);
+      alert("Utilizador eliminado com sucesso!");
+      carregarUtilizadores(); // Atualiza a lista após a eliminação
+    } catch (erro) {
+      console.error("Erro ao eliminar utilizador:", erro);
+      alert("Falha ao eliminar o utilizador.");
     }
   };
 
@@ -150,15 +186,36 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
         </Card>
       )}
 
-      {/* Lista de Utilizadores */}
+      {/* Lista de Utilizadores com Botões de Ação */}
       {mostrarUtilizadores && (
         <List title="Utilizadores Registados:">
           {utilizadores.map((u) => (
-            <ListItem 
-              key={u.id_utilizador} 
-              title={`${u.nome} (${u.email})`} 
-              badgeText={u.role || "user"} 
-            />
+            <li key={u.id_utilizador} className="list-group-item d-flex justify-content-between align-items-center p-3 mb-2 bg-light rounded text-start">
+              <div>
+                <strong>{u.nome}</strong> <small className="text-muted">({u.email})</small>
+                <div>
+                  <span className={`badge ${u.role === "admin" ? "bg-danger" : "bg-secondary"} mt-1`}>
+                    {u.role || "user"}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="d-flex gap-2">
+                <Button 
+                  className="btn btn-outline-warning btn-sm"
+                  onClick={() => handleAlterarCargo(u.id_utilizador, u.role)}
+                >
+                  {u.role === "admin" ? "Tornar User" : "Tornar Admin"}
+                </Button>
+
+                <Button 
+                  className="btn btn-outline-danger btn-sm"
+                  onClick={() => handleEliminarUtilizador(u.id_utilizador, u.nome)}
+                >
+                  Eliminar
+                </Button>
+              </div>
+            </li>
           ))}
         </List>
       )}
