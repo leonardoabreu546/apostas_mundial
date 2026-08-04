@@ -50,10 +50,59 @@ app.post("/utilizadores", async (req, res) => {
 app.get("/utilizadores", async (req, res) => {
     try {
         const db = await ligarBD();
-        const utilizadores = await db.all("SELECT id_utilizador, nome, email FROM utilizadores");
+        const utilizadores = await db.all("SELECT id_utilizador, nome, email, role FROM utilizadores");
         res.json(utilizadores);
     } catch (error) {
         res.status(500).json({ error: "Erro ao listar os utilizadores" });
+    }
+});
+
+// 🌟 ROTA NOVA: Alterar o cargo (role) do utilizador
+app.patch("/utilizadores/:id/role", async (req, res) => {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!role || (role !== "admin" && role !== "user")) {
+        return res.status(400).json({ error: "Cargo inválido. Use 'admin' ou 'user'." });
+    }
+
+    try {
+        const db = await ligarBD();
+        const resultado = await db.run(
+            "UPDATE utilizadores SET role = ? WHERE id_utilizador = ?",
+            [role, id]
+        );
+
+        if (resultado.changes === 0) {
+            return res.status(404).json({ error: "Utilizador não encontrado." });
+        }
+
+        res.json({ message: "Cargo atualizado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao atualizar cargo:", error);
+        res.status(500).json({ error: "Erro interno no servidor ao atualizar o cargo." });
+    }
+});
+
+// 🌟 ROTA NOVA: Eliminar utilizador
+app.delete("/utilizadores/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const db = await ligarBD();
+        const resultado = await db.run(
+            "DELETE FROM utilizadores WHERE id_utilizador = ?",
+            [id]
+        );
+
+        if (resultado.changes === 0) {
+            return res.status(404).json({ error: "Utilizador não encontrado." });
+        }
+
+        res.json({ message: "Utilizador eliminado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao eliminar utilizador:", error);
+        res.status(500).json({ error: "Erro interno no servidor ao eliminar o utilizador." });
     }
 });
 
@@ -95,7 +144,6 @@ app.get("/jogos", async (req, res) => {
             INNER JOIN equipas AS e2 ON jogos.equipa2_id = e2.id_equipa
         `, [id_utilizador || 0]);
 
-        // Converte o valor do SQLite (1 ou 0) para Boolean verdadeiro/falso
         const jogosFormatados = jogos.map(jogo => ({
             ...jogo,
             ja_votou: Boolean(jogo.ja_votou)
@@ -168,7 +216,6 @@ app.post("/votos", async (req, res) => {
             userID = primeiroUser ? primeiroUser.id_utilizador : 1;
         }
 
-        // Impede votos duplicados do mesmo utilizador no mesmo jogo
         const apostaExistente = await db.get(
             "SELECT * FROM apostas WHERE id_jogo = ? AND id_utilizador = ?",
             [id_jogo, userID]
