@@ -11,9 +11,15 @@ interface AdminDashboardProps {
   carregouEquipas: boolean;
   equipas: Equipa[];
   carregarEquipas: () => void;
+  onMudarParaUser?: () => void; 
 }
 
-export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: AdminDashboardProps) {
+export function AdminDashboard({ 
+  carregouEquipas, 
+  equipas, 
+  carregarEquipas,
+  onMudarParaUser 
+}: AdminDashboardProps) {
 
   const nome = localStorage.getItem("nome_utilizador") || "Administrador";
 
@@ -27,7 +33,6 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
   const [mostrarUtilizadores, setMostrarUtilizadores] = useState(false);
 
   const abrirCriarJogo = async () => {
-    // Garante que as equipas estão carregadas antes de abrir o formulário
     await carregarEquipas();
     setMostrarFormJogo(true);
     setMostrarUtilizadores(false);
@@ -58,7 +63,7 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
         role: novoRole
       });
       alert(`Cargo alterado para ${novoRole} com sucesso!`);
-      carregarUtilizadores(); // Atualiza a lista após a alteração
+      carregarUtilizadores();
     } catch (erro) {
       console.error("Erro ao alterar cargo:", erro);
       alert("Falha ao alterar o cargo do utilizador.");
@@ -74,7 +79,7 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
     try {
       await axios.delete(`http://localhost:3000/utilizadores/${idUtilizador}`);
       alert("Utilizador eliminado com sucesso!");
-      carregarUtilizadores(); // Atualiza a lista após a eliminação
+      carregarUtilizadores();
     } catch (erro) {
       console.error("Erro ao eliminar utilizador:", erro);
       alert("Falha ao eliminar o utilizador.");
@@ -98,7 +103,6 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
 
       alert("Jogo criado com sucesso!");
       
-      // Limpar campos e fechar o formulário
       setEquipa1Id("");
       setEquipa2Id("");
       setDataHora("");
@@ -116,8 +120,16 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
 
   return (
     <Card className="card p-4 shadow-sm text-center border-danger">
-      <h3 className="card-title mb-4 text-danger">Painel do Administrador</h3>
-      <p className="text-muted">Bem-vindo, <strong>{nome}</strong>! (Modo Admin)</p>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h3 className="card-title text-danger mb-0">Painel do Administrador</h3>
+        {onMudarParaUser && (
+          <Button className="btn btn-outline-primary btn-sm" onClick={onMudarParaUser}>
+            🎮 Vista Utilizador
+          </Button>
+        )}
+      </div>
+
+      <p className="text-muted text-start">Bem-vindo, <strong>{nome}</strong>! (Modo Admin)</p>
       <hr />
       
       <div className="d-grid gap-2 mb-4">
