@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // 👈 Importado o hook de navegação
+import { useNavigate } from "react-router-dom"; 
 import type { Equipa } from "../components/types";
 import { Card } from "../components/card";
 import { Button } from "../components/button";
@@ -16,7 +16,7 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: AdminDashboardProps) {
 
-  const navigate = useNavigate(); // 👈 Hook para navegar entre páginas
+  const navigate = useNavigate(); 
   const nome = localStorage.getItem("nome_utilizador") || "Administrador";
 
   const [mostrarFormJogo, setMostrarFormJogo] = useState(false);
@@ -118,7 +118,7 @@ export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: Ad
         <h3 className="card-title text-danger mb-0">Painel Admin</h3>
         <Button 
           className="btn btn-outline-primary btn-sm" 
-          onClick={() => navigate("/dashboard")} // 👈 Redireciona para o UserDashboard
+          onClick={() => navigate("/dashboard")} 
         >
           🎮 Vista Utilizador
         </Button>

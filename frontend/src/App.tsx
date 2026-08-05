@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RegistoUtilizador from "./pages/registoUtilizador";
 import { AdminDashboard } from "./pages/adminDashboard";
 import { UserDashboard } from "./pages/userDashboard";
+import { ProtectedRoute } from "./routes/protectedRoute";
 import type { Equipa } from "./components/types";
 
 function App() {
@@ -27,23 +28,32 @@ function App() {
         <h1 className="text-center mb-4 text-primary fw-bold">Mundial 2026</h1>
         
         <Routes>
-          {/* Rota inicial: ecrã de identificação/registo */}
+          {/* Rota inicial pública */}
           <Route path="/" element={<RegistoUtilizador />} />
 
-          {/* Rota do Administrador */}
+          {/* Rota do Administrador: Protegida e exclusiva para Admins */}
           <Route 
             path="/admin" 
             element={
-              <AdminDashboard 
-                carregouEquipas={carregouEquipas} 
-                equipas={equipas} 
-                carregarEquipas={carregarEquipas} 
-              />
+              <ProtectedRoute apenasAdmin={true}>
+                <AdminDashboard 
+                  carregouEquipas={carregouEquipas} 
+                  equipas={equipas} 
+                  carregarEquipas={carregarEquipas} 
+                />
+              </ProtectedRoute>
             } 
           />
 
-          {/* Rota do Utilizador Comum */}
-          <Route path="/dashboard" element={<UserDashboard />} />
+          {/* Rota do Utilizador Comum: Protegida para utilizadores autenticados */}
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <UserDashboard />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </div>
     </BrowserRouter>
