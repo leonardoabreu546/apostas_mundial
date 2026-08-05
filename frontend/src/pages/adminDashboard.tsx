@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // 👈 Importado o hook de navegação
 import type { Equipa } from "../components/types";
 import { Card } from "../components/card";
 import { Button } from "../components/button";
@@ -11,16 +12,11 @@ interface AdminDashboardProps {
   carregouEquipas: boolean;
   equipas: Equipa[];
   carregarEquipas: () => void;
-  onMudarParaUser?: () => void; 
 }
 
-export function AdminDashboard({ 
-  carregouEquipas, 
-  equipas, 
-  carregarEquipas,
-  onMudarParaUser 
-}: AdminDashboardProps) {
+export function AdminDashboard({ carregouEquipas, equipas, carregarEquipas }: AdminDashboardProps) {
 
+  const navigate = useNavigate(); // 👈 Hook para navegar entre páginas
   const nome = localStorage.getItem("nome_utilizador") || "Administrador";
 
   const [mostrarFormJogo, setMostrarFormJogo] = useState(false);
@@ -28,7 +24,6 @@ export function AdminDashboard({
   const [equipa2Id, setEquipa2Id] = useState("");
   const [dataHora, setDataHora] = useState("");
 
-  // Estados para gerir utilizadores
   const [utilizadores, setUtilizadores] = useState<{ id_utilizador: number; nome: string; email: string; role?: string }[]>([]);
   const [mostrarUtilizadores, setMostrarUtilizadores] = useState(false);
 
@@ -54,7 +49,6 @@ export function AdminDashboard({
     setMostrarFormJogo(false);
   };
 
-  // 1. Função para alterar o cargo (admin <-> user)
   const handleAlterarCargo = async (idUtilizador: number, roleAtual?: string) => {
     const novoRole = roleAtual === "admin" ? "user" : "admin";
 
@@ -70,7 +64,6 @@ export function AdminDashboard({
     }
   };
 
-  // 2. Função para eliminar utilizador
   const handleEliminarUtilizador = async (idUtilizador: number, nomeUtilizador: string) => {
     if (!confirm(`Tens a certeza que queres eliminar o utilizador "${nomeUtilizador}"?`)) {
       return;
@@ -120,13 +113,15 @@ export function AdminDashboard({
 
   return (
     <Card className="card p-4 shadow-sm text-center border-danger">
+      {/* Cabeçalho com botão de alternar para a rota /dashboard */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3 className="card-title text-danger mb-0">Painel do Administrador</h3>
-        {onMudarParaUser && (
-          <Button className="btn btn-outline-primary btn-sm" onClick={onMudarParaUser}>
-            🎮 Vista Utilizador
-          </Button>
-        )}
+        <h3 className="card-title text-danger mb-0">Painel Admin</h3>
+        <Button 
+          className="btn btn-outline-primary btn-sm" 
+          onClick={() => navigate("/dashboard")} // 👈 Redireciona para o UserDashboard
+        >
+          🎮 Vista Utilizador
+        </Button>
       </div>
 
       <p className="text-muted text-start">Bem-vindo, <strong>{nome}</strong>! (Modo Admin)</p>
@@ -150,12 +145,11 @@ export function AdminDashboard({
         </Button>
       </div>
 
-      {/* Formulário de Criação de Jogo utilizando Inputs/Selects genéricos */}
+      {/* Formulário de Criação de Jogo */}
       {mostrarFormJogo && (
         <Card className="card p-3 mb-4 bg-light text-start">
           <h5 className="mb-3">Agendar Novo Jogo</h5>
           <form onSubmit={handleCriarJogo}>
-            
             <Select 
               label="Equipa de Casa (Equipa 1)"
               value={equipa1Id}
@@ -198,7 +192,7 @@ export function AdminDashboard({
         </Card>
       )}
 
-      {/* Lista de Utilizadores com Botões de Ação */}
+      {/* Lista de Utilizadores */}
       {mostrarUtilizadores && (
         <List title="Utilizadores Registados:">
           {utilizadores.map((u) => (
@@ -232,7 +226,7 @@ export function AdminDashboard({
         </List>
       )}
 
-      {/* Lista de Equipas genérica */}
+      {/* Lista de Equipas */}
       {carregouEquipas && !mostrarFormJogo && !mostrarUtilizadores && (
         <List title="Equipas Disponíveis na BD:">
           {equipas.map((equipa) => (
